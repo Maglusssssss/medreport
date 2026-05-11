@@ -28,12 +28,11 @@ medreport/
 
 # Cách chạy project
 
-## 1. Giải nén project
-
-Giải nén file `.zip` và mở terminal tại thư mục:
+## 1. Clone project
 
 ```
-medreport/
+git clone https://github.com/Maglusssssss/medreport-ai
+cd medreport
 ```
 
 ---
