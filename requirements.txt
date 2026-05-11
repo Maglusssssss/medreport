@@ -1,0 +1,13 @@
+flask
+torch
+torchvision
+Pillow
+numpy
+pandas
+scikit-learn
+nltk
+rouge-score
+matplotlib
+tqdm
+python-dotenv
+

@@ -1,0 +1,1 @@
+data được lấy tại Kaggle: https://www.kaggle.com/datasets/raddar/chest-xrays-indiana-university

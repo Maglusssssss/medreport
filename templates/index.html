@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedReport AI</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">🩺</span>
+      <div>
+        <div class="logo-title">MedReport AI</div>
+        <div class="logo-sub">DenseNet121 + LSTM · IU X-Ray Dataset</div>
+      </div>
+    </div>
+    <div class="header-tags">
+      <span class="htag">PyTorch</span>
+      <span class="htag">Flask</span>
+      <span class="htag">DenseNet121</span>
+      <span class="htag" id="modelTag">Kiểm tra...</span>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="container">
+  <div class="grid">
+
+    <!-- LEFT -->
+    <div class="col-left">
+
+      <div class="card">
+        <div class="card-head">📂 Tải ảnh X-Quang</div>
+        <div class="card-body">
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" id="fileInput" accept="image/*" hidden>
+            <div id="placeholder" class="upload-placeholder">
+              <div class="upload-icon">🫁</div>
+              <div class="upload-text">Nhấn hoặc kéo thả ảnh vào đây</div>
+              <div class="upload-hint">PNG · JPG · JPEG</div>
+            </div>
+            <div id="previewBox" class="upload-preview" style="display:none">
+              <img id="previewImg" alt="">
+              <button id="btnRemove" class="btn-remove">✕ Xoá</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- <div class="card">
+        <div class="card-head">⚙ Thông tin lâm sàng</div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Tuổi bệnh nhân</label>
+            <input type="number" id="age" placeholder="VD: 55" min="1" max="120">
+          </div>
+          <div class="form-group">
+            <label>Giới tính</label>
+            <select id="gender">
+              <option value="">— Chọn —</option>
+              <option>Nam</option>
+              <option>Nữ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Triệu chứng</label>
+            <input type="text" id="symptoms" placeholder="Ho, sốt, khó thở...">
+          </div>
+        </div>
+      </div> -->
+
+      <button class="btn-primary" id="btnSubmit">⚡ Sinh báo cáo</button>
+
+      <div class="card card-arch">
+        <div class="card-head">🏗 Kiến trúc mô hình</div>
+        <div class="card-body">
+          <div class="arch-flow">
+            <div class="arch-block b-img">Ảnh<br><small>224×224</small></div>
+            <div class="arch-arr">→</div>
+            <div class="arch-block b-enc">DenseNet121<br><small>Encoder</small></div>
+            <div class="arch-arr">→</div>
+            <div class="arch-block b-feat">Vector<br><small>1024-d</small></div>
+            <div class="arch-arr">→</div>
+            <div class="arch-block b-dec">LSTM<br><small>Decoder</small></div>
+            <div class="arch-arr">→</div>
+            <div class="arch-block b-out">Báo cáo<br><small>text</small></div>
+          </div>
+          <p class="arch-note">Pre-trained DenseNet121 trích xuất đặc trưng.<br>LSTM auto-regressive sinh báo cáo từng từ.</p>
+        </div>
+      </div>
+
+    </div><!-- /col-left -->
+
+    <!-- RIGHT -->
+    <div class="col-right">
+
+      <div class="card result-card" id="resultCard">
+        <div class="card-head">
+          📋 Kết quả phân tích
+          <span class="result-meta" id="resultMeta"></span>
+        </div>
+        <div class="card-body">
+
+          <!-- Empty -->
+          <div id="stateEmpty" class="state-box">
+            <div class="state-icon">📋</div>
+            <p>Tải ảnh X-Quang và nhấn<br><strong>Sinh báo cáo</strong> để bắt đầu</p>
+          </div>
+
+          <!-- Loading -->
+          <div id="stateLoading" class="state-box" style="display:none">
+            <div class="spinner"></div>
+            <p id="loadingText">Đang phân tích ảnh...</p>
+            <div class="loading-steps">
+              <div class="lstep" id="ls1">Trích xuất đặc trưng ảnh (DenseNet121)</div>
+              <div class="lstep" id="ls2">Khởi tạo LSTM decoder</div>
+              <div class="lstep" id="ls3">Sinh báo cáo từng từ</div>
+              <div class="lstep" id="ls4">Phân tích từ khoá bệnh lý</div>
+            </div>
+          </div>
+
+          <!-- Error -->
+          <div id="stateError" class="state-box" style="display:none">
+            <div class="state-icon">⚠</div>
+            <p id="errorMsg" class="error-msg"></p>
+            <button onclick="resetForm()" class="btn-sec">Thử lại</button>
+          </div>
+
+          <!-- Result -->
+          <div id="stateResult" style="display:none">
+
+            <div class="preview-thumb-wrap">
+              <img id="thumbImg" class="thumb-img" alt="">
+              <div id="metaInfo" class="meta-info"></div>
+            </div>
+
+            <div class="section-label">PHÁT HIỆN BỆNH LÝ</div>
+            <div id="findingsTags" class="findings-tags"></div>
+
+            <div class="section-label">BÁO CÁO SINH TỰ ĐỘNG
+              <small>(DenseNet121 + LSTM)</small>
+            </div>
+            <div id="reportText" class="report-text"></div>
+
+            <div class="section-label">KHUYẾN NGHỊ LÂM SÀNG</div>
+            <div id="recommendBox" class="recommend-box"></div>
+
+            <div class="disclaimer-box">
+              ⚠ Báo cáo được sinh tự động bởi mô hình AI, chỉ mang tính tham khảo.
+              Vui lòng tham vấn bác sĩ chuyên khoa để có chẩn đoán chính xác.
+            </div>
+
+            <div class="action-row">
+              <button onclick="copyReport()" class="btn-sec">📋 Sao chép</button>
+              <button onclick="resetForm()" class="btn-sec">↺ Phân tích mới</button>
+            </div>
+
+          </div><!-- /stateResult -->
+
+        </div>
+      </div>
+
+      <!-- Metrics card (hiện sau khi có kết quả) -->
+      <!-- <div class="card metrics-card" id="metricsCard" style="display:none">
+        <div class="card-head">📊 Hiệu suất mô hình (Test set)</div>
+        <div class="card-body metrics-grid" id="metricsGrid"></div>
+      </div> -->
+
+    </div><!-- /col-right -->
+
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="container">
+    Đồ án môn học · DenseNet121 + LSTM · IU X-Ray Dataset ·
+    Tham khảo: R2Gen (Chen et al., 2020) &amp; LLaVA-Med (Li et al., 2023)
+  </div>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
