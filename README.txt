@@ -31,7 +31,7 @@ medreport/
 ## 1. Clone project
 
 ```bash
-git clone https://github.com/Maglusssssss/medreport
+git clone https://github.com/daitrong94/medreport
 cd medreport
 ```
 
